@@ -19,7 +19,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
+    "build:tg": "GENERATE_SOURCEMAP=false tsc && vite build --minify terser --outDir dist",
     "preview": "vite preview"
   }
 }

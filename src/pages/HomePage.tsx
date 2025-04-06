@@ -117,21 +117,31 @@ const HomePage = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Настраиваем основную кнопку Telegram
-    const tg = window.Telegram.WebApp;
-    tg.MainButton.setText('Перейти в каталог');
-    tg.MainButton.show();
-    
-    const handleClick = () => {
-      navigate('/catalog');
-    };
-    
-    tg.MainButton.onClick(handleClick);
-    
-    return () => {
-      tg.MainButton.hide();
-      tg.MainButton.offClick(handleClick);
-    };
+    // Проверяем наличие Telegram WebApp API
+    if (window.Telegram && window.Telegram.WebApp) {
+      try {
+        const tg = window.Telegram.WebApp;
+        
+        // Проверяем доступность MainButton
+        if (tg.MainButton) {
+          tg.MainButton.setText('Перейти в каталог');
+          tg.MainButton.show();
+          
+          const handleClick = () => {
+            navigate('/catalog');
+          };
+          
+          tg.MainButton.onClick(handleClick);
+          
+          return () => {
+            tg.MainButton.hide();
+            tg.MainButton.offClick(handleClick);
+          };
+        }
+      } catch (error) {
+        console.error('Error setting up Telegram MainButton:', error);
+      }
+    }
   }, [navigate]);
   
   return (
