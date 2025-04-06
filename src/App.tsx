@@ -5,23 +5,16 @@ import HomePage from './pages/HomePage';
 import CatalogPage from './pages/CatalogPage';
 import ProductPage from './pages/ProductPage';
 import CartPage from './pages/CartPage';
+import './styles/global.css';
+
+// Важно: отслеживаем ошибки при загрузке
+console.log('App.tsx загружен, проверяем доступность Telegram WebApp');
 
 // Объявляем компонент Fallback для отображения во время инициализации
-const LoadingScreen = () => (
-  <div style={{
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    color: '#000',
-    fontSize: '18px'
-  }}>
-    Загрузка...
+const LoadingFallback = () => (
+  <div className="loading-screen">
+    <div className="loading-spinner"></div>
+    <p>Инициализация приложения...</p>
   </div>
 );
 
@@ -29,97 +22,76 @@ const App = () => {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-    let attempts = 0;
-    const maxAttempts = 10;
-    
-    const initTelegram = () => {
-      console.log("Attempting to initialize Telegram WebApp, attempt:", attempts + 1);
+    try {
+      console.log('App.tsx: useEffect сработал');
       
-      // Проверяем, доступен ли Telegram WebApp API
+      // Проверяем наличие Telegram WebApp API
       if (window.Telegram && window.Telegram.WebApp) {
-        try {
-          const tg = window.Telegram.WebApp;
-          
-          console.log("Telegram WebApp available:", tg);
-          console.log("Color scheme:", tg.colorScheme);
-          console.log("InitData:", tg.initData);
-          
-          // Сигнализируем о готовности
-          tg.ready();
-          
-          // Если приложение открыто в Telegram, расширяем его на весь экран
-          if (tg.expand) {
-            tg.expand();
-          }
-          
-          // Устанавливаем переменные CSS для темы Telegram
-          document.documentElement.style.setProperty(
-            '--tg-theme-bg-color', 
-            tg.colorScheme === 'dark' ? '#000000' : '#ffffff'
-          );
-          document.documentElement.style.setProperty(
-            '--tg-theme-text-color', 
-            tg.colorScheme === 'dark' ? '#ffffff' : '#000000'
-          );
-          document.documentElement.style.setProperty(
-            '--tg-theme-secondary-bg-color',
-            tg.colorScheme === 'dark' ? '#333333' : '#f0f0f0'
-          );
-          
-          if (mounted) {
-            setIsInitialized(true);
-          }
-          return true;
-        } catch (error) {
-          console.error('Error initializing Telegram WebApp:', error);
-          document.documentElement.style.setProperty('--tg-theme-bg-color', '#ffffff');
-          document.documentElement.style.setProperty('--tg-theme-text-color', '#000000');
-          document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', '#f0f0f0');
-        }
+        console.log('Telegram WebApp API найден:', {
+          colorScheme: window.Telegram.WebApp.colorScheme
+        });
+        
+        const tg = window.Telegram.WebApp;
+        
+        // Инициализация WebApp
+        tg.ready();
+        tg.expand();
+        
+        // Установка цветов темы
+        document.documentElement.style.setProperty(
+          '--tg-theme-bg-color',
+          tg.colorScheme === 'dark' ? '#1f1f1f' : '#ffffff'
+        );
+        
+        document.documentElement.style.setProperty(
+          '--tg-theme-text-color',
+          tg.colorScheme === 'dark' ? '#ffffff' : '#000000'
+        );
+        
+        document.documentElement.style.setProperty(
+          '--tg-theme-secondary-bg-color',
+          tg.colorScheme === 'dark' ? '#333333' : '#f0f0f0'
+        );
+        
+        console.log('Telegram WebApp успешно инициализирован');
+        setIsInitialized(true);
       } else {
-        console.log('Telegram WebApp is not available (attempt ' + (attempts + 1) + ')');
+        console.warn('Telegram WebApp API не найден, используем значения по умолчанию');
+        // Установка цветов по умолчанию
         document.documentElement.style.setProperty('--tg-theme-bg-color', '#ffffff');
         document.documentElement.style.setProperty('--tg-theme-text-color', '#000000');
         document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', '#f0f0f0');
-      }
-      
-      // Если не удалось инициализировать и попытки не исчерпаны
-      if (attempts < maxAttempts && mounted) {
-        attempts++;
-        setTimeout(initTelegram, 100); // Пробуем снова через 100 мс
-        return false;
-      } else if (mounted) {
-        // Если исчерпаны попытки, все равно показываем приложение
-        console.log("Max attempts reached, showing app anyway");
+        
+        // Показываем приложение даже без Telegram API
         setIsInitialized(true);
-        return false;
       }
-      return false;
-    };
-
-    // Пытаемся инициализировать сразу
-    initTelegram();
-
-    return () => {
-      mounted = false;
-    };
+    } catch (error) {
+      console.error('Ошибка при инициализации Telegram WebApp:', error);
+      // Установка цветов по умолчанию при ошибке
+      document.documentElement.style.setProperty('--tg-theme-bg-color', '#ffffff');
+      document.documentElement.style.setProperty('--tg-theme-text-color', '#000000');
+      document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', '#f0f0f0');
+      
+      // Показываем приложение даже при ошибке
+      setIsInitialized(true);
+    }
   }, []);
 
-  // Показываем загрузочный экран, пока не инициализировано
-  if (!isInitialized) {
-    return <LoadingScreen />;
-  }
-
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<HomePage />} />
-        <Route path="catalog" element={<CatalogPage />} />
-        <Route path="product/:id" element={<ProductPage />} />
-        <Route path="cart" element={<CartPage />} />
-      </Route>
-    </Routes>
+    <>
+      {isInitialized ? (
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<HomePage />} />
+            <Route path="catalog" element={<CatalogPage />} />
+            <Route path="product/:id" element={<ProductPage />} />
+            <Route path="cart" element={<CartPage />} />
+          </Route>
+        </Routes>
+      ) : (
+        <LoadingFallback />
+      )}
+    </>
   );
 };
 
