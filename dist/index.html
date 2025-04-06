@@ -27,5 +27,42 @@
 </head>
 <body>
   <div id="root"></div>
+  
+  <noscript>
+    <div style="padding: 20px; text-align: center;">
+      Для работы приложения необходимо включить JavaScript в вашем браузере.
+    </div>
+  </noscript>
+  
+  <div id="debug-info" style="display:none; padding: 10px; margin-top: 20px; background: #f5f5f5; border-radius: 4px;">
+    <h3>Debug Info</h3>
+    <pre id="debug-data"></pre>
+  </div>
+  
+  <script>
+    // Функция для проверки загрузки React
+    function checkReactLoad() {
+      if (document.getElementById('root').children.length === 0) {
+        console.error('React не загрузился. Проверьте консоль на наличие ошибок.');
+      }
+    }
+    
+    // Проверяем загрузку через 5 секунд
+    setTimeout(checkReactLoad, 5000);
+    
+    // Если страница в режиме отладки, показываем отладочную информацию
+    if (window.location.search.includes('debug=true')) {
+      document.getElementById('debug-info').style.display = 'block';
+      
+      const debugData = {
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        telegramWebAppDetected: !!window.Telegram?.WebApp,
+        telegramWebAppData: window.telegramWebAppInitData,
+      };
+      
+      document.getElementById('debug-data').textContent = JSON.stringify(debugData, null, 2);
+    }
+  </script>
 </body>
 </html> 
