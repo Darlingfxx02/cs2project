@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
@@ -7,8 +7,6 @@ import ProductPage from './pages/ProductPage';
 import CartPage from './pages/CartPage';
 
 const App = () => {
-  const [telegramInitialized, setTelegramInitialized] = useState(false);
-
   useEffect(() => {
     const initTelegram = () => {
       // Проверяем, доступен ли Telegram WebApp API
@@ -41,8 +39,6 @@ const App = () => {
             '--tg-theme-secondary-bg-color',
             tg.colorScheme === 'dark' ? '#333333' : '#f0f0f0'
           );
-          
-          setTelegramInitialized(true);
           
         } catch (error) {
           console.error('Error initializing Telegram WebApp:', error);
